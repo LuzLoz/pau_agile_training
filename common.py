@@ -3,23 +3,24 @@ import sqlite3
 import datetime
 import base64
 
+
 def render_header():
     st.markdown("""
     <style>
-    .stButton>button {
+    .link-button>button {
         background-color: #246cab;
     }
-    .stButton>button:hover {
+    .link-button>button:hover {
         background-color: #539cdc;
         color: white;
     }
     </style>
     """, unsafe_allow_html=True)
-    header_col1, header_col2, header_col3 = st.columns([1, 1, 3])
+    header_col1, header_col2, header_col3 = st.columns([1, 1, 1])
     
     with header_col1:
          # Read and encode the image to base64
-        with open("static/logo.png", "rb") as image_file:
+        with open("images/logo.png", "rb") as image_file:
             encoded_image = base64.b64encode(image_file.read()).decode()
         
         # Custom HTML for the image with click event
@@ -31,23 +32,26 @@ def render_header():
                 cursor: pointer;
             }}
             </style>
-            <img src="data:image/png;base64,{encoded_image}" class="logo-image" onclick="window.location.href='/?page=main'" />
+            <img src="data:image/png;base64,{encoded_image}" class="logo-image" onclick="window.location.href='/'" />
             """, unsafe_allow_html=True)
     
     with header_col2:
         st.subheader(f'Welcome, {st.session_state.username}!')
 
-    with header_col3:
-        button_col1, button_col2, button_col3 = st.columns(3)
-        with button_col1:
-            if st.button('Assessment'):
-                st.query_params["page"] = "assessment"
-        with button_col2:
-            if st.button('Resources'):
-                st.query_params["page"] = "resources"
-        with button_col3:
-            if st.button('Results'):
-                st.query_params["page"] = "results"
+    # with header_col3:
+    #     button_col1, button_col2, button_col3 = st.columns(3)
+    #     with button_col1:
+    #         if st.button('Assessment', key='Assessment_btn'):
+    #             st.query_params["page"] = "assessment"
+    #             st.rerun()
+    #     with button_col2:
+    #         if st.button('Resources', key='Resources_btn'):
+    #             st.query_params["page"] = "resources"
+    #             st.rerun()
+    #     with button_col3:
+    #         if st.button('Results', key='Results_btn'):
+    #             st.query_params["page"] = "results"
+    #             st.rerun()
 
 def render_main_page():
     render_header()
