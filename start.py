@@ -1,9 +1,6 @@
 import streamlit as st
 from common import check_login, add_user, render_main_page
 
-
-
-
 # Login form
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
@@ -22,6 +19,8 @@ if not st.session_state.logged_in:
             if user:
                 st.session_state.logged_in = True
                 st.session_state.username = username
+                st.session_state.page = ""
+                st.session_state.page_section = ""
                 st.success('Login successful!')
                 st.rerun()
             else:
@@ -39,15 +38,6 @@ if not st.session_state.logged_in:
                 st.error('Username already exists. Please choose a different username.')
 else:
     # main page
-    
-    
-    # query_params = st.query_params
-    # if "page" in st.query_params:
-    #     if st.query_params["page"] == "assessment":
-    #         render_assessment_page()
-    #     elif st.query_params["page"] == "resources":
-    #         render_resources_page()
-    #     elif st.query_params["page"] == "results":
-    #         render_results_page()
-    # else:
-        render_main_page()
+    st.session_state.page = ""
+    st.session_state.page_section = ""
+    render_main_page()

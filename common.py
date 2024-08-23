@@ -38,27 +38,17 @@ def render_header():
     with header_col2:
         st.subheader(f'Welcome, {st.session_state.username}!')
 
-    # with header_col3:
-    #     button_col1, button_col2, button_col3 = st.columns(3)
-    #     with button_col1:
-    #         if st.button('Assessment', key='Assessment_btn'):
-    #             st.query_params["page"] = "assessment"
-    #             st.rerun()
-    #     with button_col2:
-    #         if st.button('Resources', key='Resources_btn'):
-    #             st.query_params["page"] = "resources"
-    #             st.rerun()
-    #     with button_col3:
-    #         if st.button('Results', key='Results_btn'):
-    #             st.query_params["page"] = "results"
-    #             st.rerun()
-
 def render_main_page():
     render_header()
 
     st.markdown("<h1 style='text-align: center;'>Welcome to SCRUM Master Skills!", unsafe_allow_html=True)
     st.markdown("<h3 style='text-align: center;'>Measure and Improve Your Scrum Master Skills", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center;'>This Web site is dedicated to helping you measure and improve your hard skills as Scrum Master. Here, you will find a measurement tool and a wide range of resources to enhance your knowledge and expertise in this role.", unsafe_allow_html=True)
+
+    st.page_link("start.py", label="Home", icon="🏠")
+    st.page_link("pages/assessment.py", label="Assessments", icon="📄")
+    st.page_link("pages/resources.py", label="Resources", icon="📚")
+    st.page_link("pages/results.py", label="Results", icon="📊")
 
 # Function to check login credentials
 def check_login(username, password):
