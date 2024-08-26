@@ -1,6 +1,6 @@
 import streamlit as st
 from common import check_login, add_user, render_main_page
-
+st.set_page_config(initial_sidebar_state="collapsed") 
 # Login form
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
