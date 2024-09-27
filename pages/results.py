@@ -2,6 +2,8 @@ import streamlit as st
 from common import check_login, add_user, render_header, render_main_page
 import time
 import base64
+import pandas as pd
+import sqlite3
 
 def header_page():
     header_col1, header_col2 = st.columns([1, 1])
@@ -44,8 +46,8 @@ def header_page():
 
 def render_results_page():
     header_page()
-    st.markdown("<h1 style='text-align: center;'>Results Page</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center;'>This is the Results page content.</p>", unsafe_allow_html=True)
+    # st.markdown("<h3 style='text-align: center;'>Results Page</h1>", unsafe_allow_html=True)
+    # st.markdown("<p style='text-align: center;'>This is the Results page content.</p>", unsafe_allow_html=True)
 
     # main page
     st.markdown("""
@@ -60,6 +62,21 @@ def render_results_page():
     </style>
     """, unsafe_allow_html=True)
     
+    conn = sqlite3.connect('data/agile_training.db')
+    cursor = conn.cursor()
+
+    # Execute the query to fetch data
+    query = f'SELECT percentace_level, date, assesment_type FROM Evaluations e WHERE e."user" = ?'
+    cursor.execute(query, (st.session_state.username,))
+    rows = cursor.fetchall()
+    col_names = [description[0] for description in cursor.description]
+    df = pd.DataFrame(rows, columns=col_names)
+    conn.close()
+
+    # Display the DataFrame as a table using Streamlit
+    st.write(f"{st.session_state.username} Evaluation's history")
+    st.dataframe(df)
+
 if __name__ == "__main__":
     if 'logged_in' in st.session_state:
         if st.session_state.logged_in:
