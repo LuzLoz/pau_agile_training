@@ -4,6 +4,7 @@ import streamlit as st
 import base64
 import sqlite3
 import time
+from datetime import datetime
 def get_db_data(table):
     conn = sqlite3.connect('data/agile_training.db')
     cursor = conn.cursor()
@@ -134,7 +135,8 @@ def agile():
             st.rerun()
     else:
         st.write("You have completed the assessment!")
-        st.session_state.page_section = "calculate_score"
+        st.session_state.page_section = "evaluate_answers"
+        st.session_state.current_answer_index = 0
         st.rerun()
 
 def scrum():
@@ -203,6 +205,7 @@ def calculate_score():
     header_page()
     st.session_state.section = "calculate_score"
     st.subheader("Here the datails of your score")
+
     rows = st.session_state.quiz
     score = 0
     for row in rows:
@@ -224,8 +227,76 @@ def calculate_score():
     rated_score = int(score / len(rows) * 100)
     st.session_state.score = rated_score
     st.header(f"Your score: {rated_score}")
+    level = 'PL1 : Beginner'
+    if rated_score <= 60 :
+        level = 'PL1 : Beginner'
+    elif rated_score > 60 and rated_score <= 80 :
+        level = 'PL2 : Practicioner'
+    elif rated_score > 80 and rated_score <= 95 :
+        level = 'PL3 : Proficient'
+    elif rated_score > 95 :
+        level = 'PL4 : Expert'
+    st.subheader(f"Due to your score you are considered a  {level}")
+    save_score()
     st.page_link("pages/results.py", label="See your Results", icon="📊")
     st.page_link("pages/resources.py", label="Go to Resources", icon="📚")
+
+def evaluate_answers():
+    header_page()
+    # Initialize session state for current answer index
+    if 'current_answer_index' not in st.session_state:
+        st.session_state.current_answer_index = 0
+        st.session_state.score = 0
+
+    # Get the current answer index
+    current_index = st.session_state.current_answer_index
+
+    # Get the selected options and quiz data from session state
+    selected_options = st.session_state.selected_options
+    rows = st.session_state.quiz
+
+    # Display the current answer and its details
+    if rows and selected_options:
+        question_id = list(selected_options.keys())[current_index]
+        selected_option = selected_options[question_id]
+        question_data = next((row for row in rows if row[0] == question_id), None)
+
+        if question_data:
+            question = question_data[1]
+            correct_answer = question_data[6]
+            explanation = question_data[7]
+
+            st.subheader(f"Evaluation: Question {current_index + 1}/{len(selected_options)}")
+            st.markdown(f"**Question:** {question}")
+            if selected_option == correct_answer:
+                st.markdown(f"**Selected Answer:** {selected_option} ✅ ")
+            else:
+                st.markdown(f"**Selected Answer:** {selected_option} ❌")
+
+            st.markdown(f"**Correct Answer:** {correct_answer}")
+            st.markdown(f"**Explanation:** {explanation}")
+
+            # Navigation buttons
+            col1, col2, col3 = st.columns([1, 1, 1])
+            with col1:
+                if st.button("Previous", key="prev"):
+                    if current_index > 0:
+                        st.session_state.current_answer_index -= 1
+                        st.rerun()
+            with col2:
+                st.write(f"Answer {current_index + 1} of {len(selected_options)}")
+            with col3:
+                if st.button("Next", key="next"):
+                    if current_index < len(selected_options) - 1:
+                        st.session_state.current_answer_index += 1
+                        st.rerun()
+                    if current_index == len(selected_options) - 1:
+                        st.session_state.page_section = "calculate_score"
+                        st.rerun()
+    else:
+        st.write("No answers available.")
+        st.session_state.page_section = "calculate_score"
+        st.rerun()
 
 def render_assessment_page():
     #header
@@ -289,6 +360,21 @@ def render_assessment_page():
     elif st.button("Meeting Mediation & Facilitation"):
         agile()
 
+def save_score():
+    user = st.session_state.username
+    score = st.session_state.score
+    date = today_date = datetime.today().strftime('%Y-%m-%d')
+    assesment_type = st.session_state.assesment_type
+    # Connect to the SQLite database
+    conn = sqlite3.connect('data/agile_training.db')
+    cursor = conn.cursor()
+
+    # Insert the values into the Evaluations table
+    cursor.execute('INSERT INTO Evaluations (user, percentace_level, date, assesment_type) VALUES (?, ?, ?, ?)', (user, score, date, assesment_type))
+
+    # Commit the transaction and close the connection
+    conn.commit()
+    conn.close()
 
 
 
@@ -314,7 +400,9 @@ if __name__ == "__main__":
                 #AGILE
             elif st.session_state.page == "agile":
                 st.session_state.assesment_type = "Agile"
-                if st.session_state.page_section == "calculate_score":
+                if st.session_state.page_section == "evaluate_answers":
+                    evaluate_answers()
+                elif st.session_state.page_section == "calculate_score":
                     calculate_score()
                 elif st.session_state.page_section == "agile_assessment":
                     agile()
@@ -323,7 +411,9 @@ if __name__ == "__main__":
                     #SCRUM
             elif st.session_state.page == "scrum":
                 st.session_state.assesment_type = "scrum"
-                if st.session_state.page_section == "calculate_score":
+                if st.session_state.page_section == "evaluate_answers":
+                    evaluate_answers()
+                elif st.session_state.page_section == "calculate_score":
                     calculate_score()
                 elif st.session_state.page_section == "scrum_assessment":
                     scrum()
