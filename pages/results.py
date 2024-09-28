@@ -4,6 +4,7 @@ import time
 import base64
 import pandas as pd
 import sqlite3
+import plotly.express as px
 
 def header_page():
     header_col1, header_col2 = st.columns([1, 1])
@@ -75,7 +76,18 @@ def render_results_page():
 
     # Display the DataFrame as a table using Streamlit
     st.write(f"{st.session_state.username} Evaluation's history")
-    st.dataframe(df)
+    df['date'] = pd.to_datetime(df['date'])
+    assessment_dfs = {assessment_type: data for assessment_type, data in df.groupby('assesment_type')}
+
+    # Display and visualize each DataFrame
+    for assessment_type, assessment_df in assessment_dfs.items():
+        # st.write(f"Data for {assessment_type}")
+        # st.dataframe(assessment_df)
+
+        # Create graphs to visualize the progress data using Plotly
+        # st.write(f"Progress Data Visualization for {assessment_type}")
+        fig = px.line(assessment_df, x='date', y='percentace_level', title=f'History assessment for {assessment_type}')
+        st.plotly_chart(fig)
 
 if __name__ == "__main__":
     if 'logged_in' in st.session_state:
