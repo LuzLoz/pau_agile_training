@@ -67,7 +67,10 @@ def render_results_page():
     cursor = conn.cursor()
 
     # Execute the query to fetch data
-    query = f'SELECT percentace_level, date, assesment_type FROM Evaluations e WHERE e."user" = ?'
+    query = f'''SELECT percentace_level, date, assesment_type 
+                FROM Evaluations e 
+                join Users u on u.user_id = e.user_id 
+                WHERE u."user" = ?'''
     cursor.execute(query, (st.session_state.username,))
     rows = cursor.fetchall()
     col_names = [description[0] for description in cursor.description]

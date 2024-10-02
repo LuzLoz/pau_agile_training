@@ -64,7 +64,12 @@ def add_user(username, password):
     conn = sqlite3.connect('data/agile_training.db')
     cursor = conn.cursor()
     try:
-        cursor.execute('INSERT INTO users (user, password, incription_date) VALUES (?, ?, ?)', (username, password, datetime.date.today()))
+        # Check if the user already exists
+        cursor.execute('SELECT 1 FROM users WHERE user = ?', (username,))
+        if cursor.fetchone() is not None:
+            return False  # User already exists
+            
+        cursor.execute('INSERT INTO users (user, password, inscription_data, "level") VALUES (?, ?, ?, ?)', (username, password, datetime.date.today(),0))
         conn.commit()
         return True
     except sqlite3.IntegrityError:
