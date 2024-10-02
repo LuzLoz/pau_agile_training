@@ -368,9 +368,14 @@ def save_score():
     # Connect to the SQLite database
     conn = sqlite3.connect('data/agile_training.db')
     cursor = conn.cursor()
+    # Get the user_id from the users table
+    cursor.execute('SELECT user_id FROM Users WHERE user = ?', (user,))
+    result = cursor.fetchone()
 
-    # Insert the values into the Evaluations table
-    cursor.execute('INSERT INTO Evaluations (user, percentace_level, date, assesment_type) VALUES (?, ?, ?, ?)', (user, score, date, assesment_type))
+    if result:
+        user_id = result[0]
+        # Insert the values into the Evaluations table
+        cursor.execute('INSERT INTO Evaluations (user_id, percentace_level, date, assesment_type) VALUES (?, ?, ?, ?)', (user_id, score, date, assesment_type))
 
     # Commit the transaction and close the connection
     conn.commit()
