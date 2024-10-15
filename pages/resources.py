@@ -59,31 +59,17 @@ def render_resources_page():
     }
     </style>
     """, unsafe_allow_html=True)
+    # page content HERE
+
+    # links
+    st.page_link("start.py", label="Home", icon="🏠")
+    st.page_link("pages/assessment.py", label="Assessments", icon="📄")
+    st.page_link("pages/results.py", label="Results", icon="📊")
     
 if __name__ == "__main__":
     if 'logged_in' in st.session_state:
         if st.session_state.logged_in:
-            # Initialize session state variables
-            if 'selected_options' not in st.session_state:
-                st.session_state.selected_options = {}
-            if 'score' not in st.session_state:
-                st.session_state.score = 0
-            if 'quiz' not in st.session_state:
-                st.session_state.quiz = []
-            if 'current_question' not in st.session_state:
-                st.session_state.current_question = 0
-            if 'start_time' not in st.session_state:
-                st.session_state.start_time = time.time()
-            #rendering options
-            if st.session_state.page == "": 
-                render_resources_page()
-            # elif st.session_state.page == "agile":
-            #     if st.session_state.page_section == "calculate_score":
-            #         calculate_score()
-            #     elif st.session_state.page_section == "agile_assessment":
-            #         agile()
-            #     else:
-            #         agile_intro()
+            render_resources_page()
         else:
             st.subheader("Log in to have access to this section")
     else:

@@ -45,7 +45,7 @@ def render_main_page():
     st.markdown("<h3 style='text-align: center;'>Measure and Improve Your Scrum Master Skills", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center;'>This Web site is dedicated to helping you measure and improve your hard skills as Scrum Master. Here, you will find a measurement tool and a wide range of resources to enhance your knowledge and expertise in this role.", unsafe_allow_html=True)
 
-    st.page_link("start.py", label="Home", icon="🏠")
+    # st.page_link("start.py", label="Home", icon="🏠")
     st.page_link("pages/assessment.py", label="Assessments", icon="📄")
     st.page_link("pages/resources.py", label="Resources", icon="📚")
     st.page_link("pages/results.py", label="Results", icon="📊")

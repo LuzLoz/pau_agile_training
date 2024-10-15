@@ -1,6 +1,6 @@
 from datetime import datetime
 import streamlit as st
-# from common import check_login, add_user, render_main_page, render_header
+import math
 import base64
 import sqlite3
 import time
@@ -8,7 +8,7 @@ from datetime import datetime
 def get_db_data(table):
     conn = sqlite3.connect('data/agile_training.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM "+table+" limit 5;")
+    cursor.execute("SELECT * FROM "+table+" LIMIT 20;")
     rows = cursor.fetchall()
     conn.close()
     return rows 
@@ -52,31 +52,19 @@ def header_page():
             </style>
             """, unsafe_allow_html=True)
 
-def agile_intro():
+def assessment_intro(assesment_type):
     header_page()
-    # st.header("Agile")
     st.write("Evaluate your scrum master skills and assess areas for improvement based on the skill matrix for Scrum Master")
     st.write("This self-sssessment will guide you through a series of questions. Each question have 4 options and only ones is the correct answer, with a limited time of 20 minutes")
-    if st.button("Start Agile Assessment"):
-        st.session_state.page_section = "agile_assessment"
+    if st.button("Start "+assesment_type.replace("_"," ")+" Assessment"):
+        st.session_state.page_section = assesment_type.lower()+"_assessment"
+        print(st.session_state.page_section)
         st.session_state.start_time = time.time()
         st.session_state.selected_options = {}
         st.session_state.current_question = 0
         st.rerun()
 
-def scrum_intro():
-    header_page()
-    # st.header("Agile")
-    st.write("Evaluate your scrum master skills and assess areas for improvement based on the skill matrix for Scrum Master")
-    st.write("This self-sssessment will guide you through a series of questions. Each question have 4 options and only ones is the correct answer, with a limited time of 20 minutes")
-    if st.button("Start Scrum Assessment"):
-        st.session_state.page_section = "scrum_assessment"
-        st.session_state.start_time = time.time()
-        st.session_state.selected_options = {}
-        st.session_state.current_question = 0
-        st.rerun()
-
-def agile():
+def assessment(table_name):
     #header
     header_page()
 
@@ -107,7 +95,7 @@ def agile():
 
 
     #saving quiz in session data
-    st.session_state.quiz = get_db_data("AgileAssesment")
+    st.session_state.quiz = get_db_data(table_name)
 
     # Check if time is up (e.g., 20 minutes)
     if elapsed_time > 1200:
@@ -115,7 +103,6 @@ def agile():
         st.session_state.page_section = "calculate_score"
         st.rerun()
     # Display quiz data in the left column
-
     if st.session_state.current_question < len(st.session_state.quiz):
         row = st.session_state.quiz[st.session_state.current_question]
 
@@ -139,68 +126,6 @@ def agile():
         st.session_state.current_answer_index = 0
         st.rerun()
 
-def scrum():
-    #header
-    header_page()
-
-    # Calculate elapsed time
-    elapsed_time = time.time() - st.session_state.start_time
-    remaining_time = 1200 - elapsed_time  # 20 minutes countdown
-    # Convert remaining time to minutes and seconds
-    minutes, seconds = divmod(int(remaining_time), 60)
-    countdown_str = f"{minutes:02d}:{seconds:02d}"
-    # Display countdown timer
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        st.markdown(
-            f"""
-            <div style="border: 2px solid black; padding: 10px; border-radius: 5px;">
-                Question {st.session_state.current_question + 1} of {len(st.session_state.quiz)}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    with col2:
-        countdown_placeholder = st.empty()
-        countdown_placeholder.markdown(f"""<div style="border: 2px solid black; padding: 10px; border-radius: 5px;">
-                 ⏳ Remaining Time: {countdown_str}</div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
-    #saving quiz in session data
-    st.session_state.quiz = get_db_data("Scrum")
-
-    # Check if time is up (e.g., 20 minutes)
-    if elapsed_time > 1200:
-        st.write("Time is up!")
-        st.session_state.page_section = "calculate_score"
-        st.rerun()
-    # Display quiz data in the left column
-
-    if st.session_state.current_question < len(st.session_state.quiz):
-        row = st.session_state.quiz[st.session_state.current_question]
-
-        question_id = row[0]
-        question = row[1]
-        option_1 = row[2]
-        option_2 = row[3]
-        option_3 = row[4]
-        option_4 = row[5]
-
-        selected_option = st.radio(question,[option_1, option_2, option_3, option_4],index=None,key=question_id)
-        st.session_state.selected_options[question_id] = selected_option
-        st.write("")
-
-        if st.button("Next"):
-            st.session_state.current_question += 1
-            st.rerun()
-    else:
-        st.write("You have completed the assessment!")
-        st.session_state.page_section = "calculate_score"
-        st.rerun()
-
 def calculate_score():
     header_page()
     st.session_state.section = "calculate_score"
@@ -208,36 +133,42 @@ def calculate_score():
 
     rows = st.session_state.quiz
     score = 0
+    right_difficulty = {1:0, 2:0, 3:0, 4:0}
+    wrong_difficulty = {1:0, 2:0, 3:0, 4:0}
     for row in rows:
         question_id = row[0]
         question = row[1]
         correct_answer = row[6]
         explanation = row[7]
+        question_level = row[8]
         selected_option = st.session_state.selected_options.get(question_id, None)
         if selected_option == correct_answer:
-            score += 1
+            right_difficulty[question_level] += 1
             st.markdown(f"""<div style="border: 2px solid black; padding: 10px; border-radius: 5px;">
                         Question: {question}<br>Selected: {selected_option} ✅ <span style='color: green;'>Correct!</span>
                         </div>""", unsafe_allow_html=True)
         else:
+            wrong_difficulty[question_level] += 1
             st.markdown(f"""<div style="border: 2px solid black; padding: 10px; border-radius: 5px;">
                         Question: {question}<br>Selected: <span style='color: red;'>{selected_option} ❌ </span><br>Correct Answer: {correct_answer}<br>Explanation: {explanation}
                         </div>""", unsafe_allow_html=True)
 
-    rated_score = int(score / len(rows) * 100)
-    st.session_state.score = rated_score
-    st.header(f"Your score: {rated_score}")
+    score = scoring_function(right_difficulty,wrong_difficulty)
+
+    st.session_state.score = score
+    st.header(f"Your score: {score}")
     level = 'PL1 : Beginner'
-    if rated_score <= 60 :
+    if score <= 60 :
         level = 'PL1 : Beginner'
-    elif rated_score > 60 and rated_score <= 80 :
+    elif score > 60 and score <= 80 :
         level = 'PL2 : Practicioner'
-    elif rated_score > 80 and rated_score <= 95 :
+    elif score > 80 and score <= 95 :
         level = 'PL3 : Proficient'
-    elif rated_score > 95 :
+    elif score > 95 :
         level = 'PL4 : Expert'
     st.subheader(f"Due to your score you are considered a  {level}")
     save_score()
+    st.page_link("start.py", label="Home", icon="🏠")
     st.page_link("pages/results.py", label="See your Results", icon="📊")
     st.page_link("pages/resources.py", label="Go to Resources", icon="📚")
 
@@ -352,13 +283,17 @@ def render_assessment_page():
         st.session_state.page = "scrum"
         st.rerun()
     elif st.button("Technical Literacy"):
-        agile()
-    elif st.button("Bussines Literacy"):
-        agile()
+        st.session_state.page = "Technical_Literacy"
+        st.rerun()
+    elif st.button("Business Literacy"):
+        st.session_state.page = "Business_Literacy"
+        st.rerun()
     elif st.button("Delivery"):
-        agile()
+        st.session_state.page = "Delivery"
+        st.rerun()
     elif st.button("Meeting Mediation & Facilitation"):
-        agile()
+        st.session_state.page = "Meeting_Mediation_&_Facilitation"
+        st.rerun()
 
 def save_score():
     user = st.session_state.username
@@ -381,6 +316,34 @@ def save_score():
     conn.commit()
     conn.close()
 
+def rasch_probability(theta, b_i):
+    # Rasch Model: P(X = 1 | theta, b_i) = e^(theta - b_i) / (1 + e^(theta - b_i))
+    return math.exp(theta - b_i) / (1 + math.exp(theta - b_i))
+
+def select_item_based_on_rasch(theta, items):
+    best_item = None
+    highest_prob = -1
+    for item in items:
+        item_id, question, difficulty = item
+        prob = rasch_probability(theta, difficulty)  # Calculate the probability
+        # Select the item with the highest probability of being answered correctly
+        if prob > highest_prob:
+            highest_prob = prob
+            best_item = item
+            
+    return best_item
+
+def scoring_function(right, wrong):
+    # right = {1: 4, 2: 1, 3: 0, 4: 0}
+    # wrong = {1: 12, 2: 3, 3: 0, 4: 0}
+    # Calculate the total possible score
+    final_score = 0
+    right = sum(key * value for key, value in right.items())
+    wrong = sum(key * value for key, value in wrong.items())
+    total_possible_score = right + wrong
+    final_score = math.ceil((right/total_possible_score) * 100)
+
+    return final_score
 
 
 if __name__ == "__main__":
@@ -402,7 +365,7 @@ if __name__ == "__main__":
             #rendering options
             if st.session_state.page == "": 
                 render_assessment_page()
-                #AGILE
+            #AGILE
             elif st.session_state.page == "agile":
                 st.session_state.assesment_type = "Agile"
                 if st.session_state.page_section == "evaluate_answers":
@@ -410,10 +373,10 @@ if __name__ == "__main__":
                 elif st.session_state.page_section == "calculate_score":
                     calculate_score()
                 elif st.session_state.page_section == "agile_assessment":
-                    agile()
+                    assessment("AgileAssesment")
                 else:
-                    agile_intro()
-                    #SCRUM
+                    assessment_intro("Agile")
+            #SCRUM
             elif st.session_state.page == "scrum":
                 st.session_state.assesment_type = "scrum"
                 if st.session_state.page_section == "evaluate_answers":
@@ -421,9 +384,53 @@ if __name__ == "__main__":
                 elif st.session_state.page_section == "calculate_score":
                     calculate_score()
                 elif st.session_state.page_section == "scrum_assessment":
-                    scrum()
+                    assessment("Scrum")
                 else:
-                    scrum_intro()
+                    assessment_intro("Scrum")
+            #Business Literacy
+            elif st.session_state.page == "Business_Literacy":
+                st.session_state.assesment_type = "Business_Literacy"
+                if st.session_state.page_section == "evaluate_answers":
+                    evaluate_answers()
+                elif st.session_state.page_section == "calculate_score":
+                    calculate_score()
+                elif st.session_state.page_section == "business_literacy_assessment":
+                    assessment("BusinessLiteracy")
+                else:
+                    assessment_intro("Business_Literacy")
+            #Technical Literacy
+            elif st.session_state.page == "Technical_Literacy":
+                st.session_state.assesment_type = "Technical_Literacy"
+                if st.session_state.page_section == "evaluate_answers":
+                    evaluate_answers()
+                elif st.session_state.page_section == "calculate_score":
+                    calculate_score()
+                elif st.session_state.page_section == "technical_literacy_assessment":
+                    assessment("TechnicalLiteracy")
+                else:
+                    assessment_intro("Technical_Literacy")
+            #Delivery
+            elif st.session_state.page == "Delivery":
+                st.session_state.assesment_type = "Delivery"
+                if st.session_state.page_section == "evaluate_answers":
+                    evaluate_answers()
+                elif st.session_state.page_section == "calculate_score":
+                    calculate_score()
+                elif st.session_state.page_section == "delivery_assessment":
+                    assessment("Delivery")
+                else:
+                    assessment_intro("Delivery")
+            #Meeting Mediation & Facilitation
+            elif st.session_state.page == "Meeting_Mediation_&_Facilitation":
+                st.session_state.assesment_type = "Meeting_Mediation_&_Facilitation"
+                if st.session_state.page_section == "evaluate_answers":
+                    evaluate_answers()
+                elif st.session_state.page_section == "calculate_score":
+                    calculate_score()
+                elif st.session_state.page_section == "meeting_mediation_&_facilitation_assessment":
+                    assessment("MeetingMediationAndFacilitation")
+                else:
+                    assessment_intro("Meeting_Mediation_&_Facilitation")
         else:
             st.subheader("Log in to have access to Assessment section")
     else:
