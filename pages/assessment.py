@@ -83,6 +83,11 @@ def assessment(table_name):
     #header
     header_page()
 
+    #Fetch and randomize quiz data if not already set
+    if 'quiz' not in st.session_state:
+        all_rows = get_db_data(table_name)
+        st.session_state.quiz = random.sample(all_rows, 20)  # Get 20 random rows
+        
     with st.container(height=400):
 
         # Calculate elapsed time
@@ -109,11 +114,6 @@ def assessment(table_name):
                 """,
                 unsafe_allow_html=True
             )
-
-        #Fetch and randomize quiz data if not already set
-        if 'quiz' not in st.session_state:
-            all_rows = get_db_data(table_name)
-            st.session_state.quiz = random.sample(all_rows, 20)  # Get 20 random rows
 
         # #saving quiz in session data
         # st.session_state.quiz = get_db_data(table_name)
