@@ -23,7 +23,7 @@ def header_page():
             # page header's message
         with header_col2:
             st.markdown(f"<h3 style='text-align: center; color: #539cdc;'>{st.session_state.username}, welcome to Resources</h3>", unsafe_allow_html=True)
-            st.markdown("<h4 style='text-align: center;'>Here you can find resources to get stronger in the specific area you want to develop</h4>", unsafe_allow_html=True)
+            st.markdown("<h4 style='text-align: center;'>Resources to get stronger in the area you want to develop</h4>", unsafe_allow_html=True)
             st.markdown("""
                 <style>
                 .stButton>button {
@@ -51,7 +51,7 @@ def footer_page():
             st.page_link("pages/assessment.py", label="Assessments", icon="📄")
             st.page_link("pages/results.py", label="Results", icon="📊")
         with footer_col2:
-            st.link_button("Feedback ⭐⭐⭐⭐⭐", "https://forms.gle/pNBmSCZmZXdiR9y4A", help="Send Feedback", type="secondary", disabled=False, use_container_width=False)
+            st.link_button("Feedback ⭐⭐⭐⭐⭐", "https://forms.gle/daUdqLJTjxGbUzrh7", help="Send Feedback", type="secondary", disabled=False, use_container_width=False)
 
 def render_resources_page():
     header_page()
